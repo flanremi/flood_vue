@@ -31,20 +31,29 @@ export default {
   data() {
     // 记得global要注入了才有
     const global = inject('global')
+    let camera_list_click_code = inject('camera_list_click_code')
     return {
       map: null, //地图实例
       heatmap: null,
       AMap: null,
       global,
       markers:ref([]),
-      heaters:ref([])
+      heaters:ref([]),
+      camera_list_click_code,
     }
   },
   mounted() {
     this.initMap()
     let hook = this
+    watch(() => {return this.camera_list_click_code;}, function (newCode){
+      hook.listData.forEach(function(element) {
+        if(element.code == newCode){
+          console.log(element)
+          hook.map.setCenter([element.lng, element.lat])
+        }
+      })
+    })
     watch(() => { return this.listData; }, function (newArray) {
-      console.log(newArray)
       // 数组发生变化时触发这个回调
       hook.heaters.length = 0
       hook.markers.forEach(function(element) {
@@ -55,9 +64,13 @@ export default {
       for (let i = 0; i < newArray.length; i++) {
         // 创建一个 Marker 实例：
         let item = newArray[i]
+
         const marker = new hook.AMap.Marker({
           position: new hook.AMap.LngLat(item.lng, item.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+          title : item.code + "_" + item.address,
         });
+         // 声明点击事件的回调函数
+        marker.on('click', hook.onClick);
         hook.map.add(marker);
         hook.markers.push(marker)
         hook.heaters.push({
@@ -117,7 +130,7 @@ export default {
       }).catch(e => {
         console.log(e);
       })
-    }
+    },
 
       // this.global.axios.post('/get_hot_circle').then(function (response) {
       //   // 注意内部类内使用this指代的是回调对象，而不是vue对象
@@ -139,7 +152,11 @@ export default {
       // .catch(function (error) {
       //   console.log(error);
       // });
-
+    // marker点击回调函数
+    onClick(e){
+      let code = e.target.getTitle().split("_")[0]
+      this.camera_list_click_code = code
+    }
   }
 }
 

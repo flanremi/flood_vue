@@ -63,11 +63,14 @@
 <script>
 import StreamScreen from "@/components/StreamScreen";
 import LeftMap from "@/components/LeftMap";
-import {inject, ref} from "vue";
+import {inject, provide, ref} from "vue";
 
 export default {
   data(){
     const global = inject('global')
+    let camera_list_click_code = ref()
+    provide("camera_list_click_code", camera_list_click_code);
+
     return {global,listData:ref([]),}
   },
   name: 'HelloWorld',
@@ -82,6 +85,7 @@ export default {
       hook.global.axios.post('/get_camera_list').then(function (response) {
         // 注意内部类内使用this指代的是回调对象，而不是vue对象
         hook.listData.length = 0
+        // console.log(response)
         response.data.data.forEach(function(element) {
           hook.listData.push(element)
         });

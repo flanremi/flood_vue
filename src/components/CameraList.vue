@@ -24,7 +24,7 @@
 
 <script>
 
-import {ref, watch, reactive, provide} from "vue";
+import {ref, watch, reactive, inject} from "vue";
 
 export default {
   name: "CameraList",
@@ -36,9 +36,11 @@ export default {
     let tableData = ref([])
     let pos = ref(0)
     let code = ref()
-    provide("camera_list_click_code", code);
+    // 组件间传值应当把变量放到两者公约的父控件上，这样才能保证先提供，后注入。
+    let camera_list_click_code = inject('camera_list_click_code')
+
     return{
-      tableData, pos, code
+      tableData, pos, code, camera_list_click_code
     }
   },
   mounted() {
@@ -53,6 +55,7 @@ export default {
           address: newArray[i].address
         }))
       }
+
     }, {
       deep: true})
   },
@@ -62,10 +65,7 @@ export default {
       let hook = this
       this.listData.forEach(function(element) {
         if(element.code == row.code){
-
-          hook.map.setCenter([element.lng, element.lat])
-
-          hook.code = row.code
+          hook.camera_list_click_code = row.code
         }
       })
     }
