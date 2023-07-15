@@ -24,7 +24,7 @@
 
 <script>
 
-import {ref, watch, reactive} from "vue";
+import {ref, watch, reactive, provide} from "vue";
 
 export default {
   name: "CameraList",
@@ -35,9 +35,10 @@ export default {
   setup(){
     let tableData = ref([])
     let pos = ref(0)
-
+    let code = ref()
+    provide("camera_list_click_code", code);
     return{
-      tableData,pos,
+      tableData, pos, code
     }
   },
   mounted() {
@@ -63,6 +64,8 @@ export default {
         if(element.code == row.code){
 
           hook.map.setCenter([element.lng, element.lat])
+
+          hook.code = row.code
         }
       })
     }

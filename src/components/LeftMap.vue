@@ -20,27 +20,59 @@
 <script>
 import AMapLoader from '@amap/amap-jsapi-loader'
 import CameraList from "@/components/CameraList"
-import {inject, ref} from "vue";
+import {inject, ref, watch} from "vue";
 
 export default {
   name: "LeftMap",
   components: {CameraList},
+  props:{
+    listData:ref(),
+  },
   data() {
+    // 记得global要注入了才有
     const global = inject('global')
     return {
       map: null, //地图实例
       heatmap: null,
       AMap: null,
       global,
-      listData: ref(),
       markers:ref([]),
       heaters:ref([])
     }
   },
   mounted() {
     this.initMap()
-    setTimeout(this.refreshList, 2000)
-    setInterval(this.refreshList, 10000)
+    let hook = this
+    watch(() => { return this.listData; }, function (newArray) {
+      console.log(newArray)
+      // 数组发生变化时触发这个回调
+      hook.heaters.length = 0
+      hook.markers.forEach(function(element) {
+        hook.map.remove(element)
+      });
+      hook.markers.length = 0
+
+      for (let i = 0; i < newArray.length; i++) {
+        // 创建一个 Marker 实例：
+        let item = newArray[i]
+        const marker = new hook.AMap.Marker({
+          position: new hook.AMap.LngLat(item.lng, item.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+        });
+        hook.map.add(marker);
+        hook.markers.push(marker)
+        hook.heaters.push({
+          "lng": item.lng,
+          "lat": item.lat,
+          "count": item.alertLevel
+        })
+      }
+      hook.heatmap.setDataSet({
+        data: hook.heaters,
+        max: 7
+      });
+
+    }, {
+      deep: true})
   },
   methods: {
     initMap() {
@@ -68,57 +100,25 @@ export default {
           hook.heatmap = new AMap.HeatMap(hook.map, {
             radius: 40, //给定半径
             opacity: [0.1, 0.5],
-            gradient:{
-                0.1: '#00ff00',
-                0.2: '#11dd00',
-                0.3: '#33cc00',
-                0.4: '#44aa00',
-                0.5: '#669900',
-                0.6: '#777700',
-                0.7: '#996600',
-                0.8: '#aa4400',
-                0.9: '#cc3300',
-                1.0: '#ff0000'
-            }
+            // gradient:{
+            //     0.1: '#00ff00',
+            //     0.2: '#11dd00',
+            //     0.3: '#33cc00',
+            //     0.4: '#44aa00',
+            //     0.5: '#669900',
+            //     0.6: '#777700',
+            //     0.7: '#996600',
+            //     0.8: '#aa4400',
+            //     0.9: '#cc3300',
+            //     1.0: '#ff0000'
+            // }
           });
         });
       }).catch(e => {
         console.log(e);
       })
-    },
-    refreshList() {
-      let hook = this
-      this.global.axios.post('/get_camera_list').then(function (response) {
-        // 注意内部类内使用this指代的是回调对象，而不是vue对象
-        hook.listData = response.data.data
-        hook.heaters.length = 0
-        hook.markers.forEach(function(element) {
-          hook.map.remove(element)
-        });
-        hook.markers.length = 0
+    }
 
-        for (let i = 0; i < hook.listData.length; i++) {
-          // 创建一个 Marker 实例：
-          let item = hook.listData[i]
-          const marker = new hook.AMap.Marker({
-            position: new hook.AMap.LngLat(item.lng, item.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
-          });
-          hook.map.add(marker);
-          hook.markers.push(marker)
-          hook.heaters.push({
-            "lng": item.lng,
-            "lat": item.lat,
-            "count": item.alertLevel
-          })
-        }
-        hook.heatmap.setDataSet({
-          data: hook.heaters,
-          max: 7
-        });
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
       // this.global.axios.post('/get_hot_circle').then(function (response) {
       //   // 注意内部类内使用this指代的是回调对象，而不是vue对象
       //   let circles = response.data.data
@@ -139,7 +139,7 @@ export default {
       // .catch(function (error) {
       //   console.log(error);
       // });
-    }
+
   }
 }
 

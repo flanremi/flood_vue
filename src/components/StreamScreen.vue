@@ -22,9 +22,35 @@
 </template>
 
 <script>
+import {inject, ref, watch} from "vue";
 export default {
-  name: "StreamScreen"
+  name: "StreamScreen",
+  props:{
+    listData:ref(),
+  },
+  setup() {
+    // 记得global要注入了才有
+    const camera_list_click_code = inject('camera_list_click_code')
+
+    return {
+      camera_list_click_code,
+    }
+  },
+  mounted(){
+    watch(() => { return this.camera_list_click_code; }, function (newCode) {
+      // 数组发生变化时触发这个回调
+      console.log(newCode)
+    }, {
+      deep: true})
+  },
+  methods: {
+
+  },
+
 }
+
+
+
 </script>
 
 <style scoped>

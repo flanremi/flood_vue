@@ -53,8 +53,8 @@
     <div class="index_tabs">
       <!--安防运作-->
       <div class="inner" style="height: 109%;">
-        <StreamScreen/>
-        <LeftMap/>
+        <StreamScreen :listData="listData"/>
+        <LeftMap :listData="listData"/>
       </div>
     </div>
   </div>
@@ -63,11 +63,33 @@
 <script>
 import StreamScreen from "@/components/StreamScreen";
 import LeftMap from "@/components/LeftMap";
+import {inject, ref} from "vue";
+
 export default {
+  data(){
+    const global = inject('global')
+    return {global,listData:ref([]),}
+  },
   name: 'HelloWorld',
   components: {LeftMap, StreamScreen},
-  props: {
-    msg: String
+  mounted() {
+    setTimeout(this.refreshList, 2000)
+    setInterval(this.refreshList, 10000)
+  },
+  methods:{
+    refreshList() {
+      let hook = this
+      hook.global.axios.post('/get_camera_list').then(function (response) {
+        // 注意内部类内使用this指代的是回调对象，而不是vue对象
+        hook.listData.length = 0
+        response.data.data.forEach(function(element) {
+          hook.listData.push(element)
+        });
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+   }
   }
 }
 </script>
