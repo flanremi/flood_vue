@@ -63,29 +63,50 @@
 <script>
 import StreamScreen from "@/components/StreamScreen";
 import LeftMap from "@/components/LeftMap";
-import {inject, provide, ref} from "vue";
+import {inject, provide, ref, watch} from "vue";
 
 export default {
   data(){
     const global = inject('global')
     let camera_list_click_code = ref()
     provide("camera_list_click_code", camera_list_click_code);
-
-    return {global,listData:ref([]),}
+    let rightLat = ref(0)
+    let rightLng = ref(0)
+    let leftLat = ref(0)
+    let leftLng = ref(0)
+    // 必须要先provide才能inject，因此provide必在父控件上
+    provide("rightLat", rightLat)
+    provide("rightLng", rightLng)
+    provide("leftLat", leftLat)
+    provide("leftLng", leftLng)
+    const range = [leftLng, leftLat, rightLat, rightLng]
+    return {global,listData:ref([]),
+    leftLng,leftLat,rightLat,rightLng, range}
   },
   name: 'HelloWorld',
   components: {LeftMap, StreamScreen},
   mounted() {
-    setTimeout(this.refreshList, 2000)
-    setInterval(this.refreshList, 10000)
+    let hook = this
+    // setTimeout(this.refreshList, 2000)
+    // setInterval(this.refreshList, 10000)
+    watch(()=>{return hook.leftLng}, () => {
+      // 未证实，.value取得是值，直接等于取得是对象
+      hook.refreshList()
+    }, {deep:true})
   },
   methods:{
     refreshList() {
+
       let hook = this
-      hook.global.axios.post('/get_camera_list').then(function (response) {
+      hook.global.axios.post('/get_camera_list', {
+        "leftLat":hook.leftLat,
+        "leftLng":hook.leftLng,
+        "rightLat":hook.rightLat,
+        "rightLng":hook.rightLng,
+      }).then(function (response) {
         // 注意内部类内使用this指代的是回调对象，而不是vue对象
         hook.listData.length = 0
-        // console.log(response)
+        console.log(response)
         response.data.data.forEach(function(element) {
           hook.listData.push(element)
         });

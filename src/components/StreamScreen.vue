@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import {inject, ref, watch} from "vue";
+import {inject, ref,watch} from "vue";
 import flvjs from 'flv.js';
 
 export default {
@@ -71,7 +71,11 @@ export default {
             "channelId":params[0],
             "deviceId":params[1]
           }).then(function (response) {
-            hook.streams.push(response.data.data.flv)
+            if(response.data.code == 200){
+              hook.streams.push(response.data.data.flv)
+            }else{
+              console.log(response.data.code + "_" + response.data.desc)
+            }
 
           })
           .catch(function (error) {
@@ -119,12 +123,17 @@ export default {
         for (let j = 0; j < 5; j++) {
           let ite = this.listData[(j) % this.listData.length]
           let params = ite.stream.split('_');
+          console.log(params)
           this.global.axios.post('/get_stream', {
             "channelId": params[0],
             "deviceId": params[1]
           }).then(function (response) {
             // 注意内部类内使用this指代的是回调对象，而不是vue对象
-            hook.streams.push(response.data.data.flv)
+            if(response.data.code == 200){
+              hook.streams.push(response.data.data.flv)
+            }else{
+              console.log(response.data.code + "_" + response.data.desc)
+            }
           })
           .catch(function (error) {
             console.log(error);

@@ -10,7 +10,7 @@ window._AMapSecurityConfig = {
 }
 
 // axios.defaults.baseURL = "https://mock.apifox.cn/m1/2969414-0-default"
-axios.defaults.baseURL = "http://127.0.0.1:8088"
+axios.defaults.baseURL = "http://127.0.0.1:9898"
 
 const app = createApp(App)
 
