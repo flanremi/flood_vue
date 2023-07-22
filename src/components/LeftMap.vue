@@ -9,6 +9,24 @@
             <div class="map_title">秀洲区易涝点监测地图</div>
           </div>
         </div>
+        <el-switch
+            v-model="showMap"
+            class="ml-2"
+            inline-prompt
+            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #77aebb; float: right; margin-right: 10px; padding-left: 5px; padding-right: 5px"
+            active-text=" 三维地图 "
+            inactive-text=" 二维地图 "
+        />
+<!--        <button @click="replaceMap">点击替换地图</button>-->
+        <div v-if="showMap" class="map">
+          <iframe
+              width="100%"
+              height="100%"
+
+              allowfullscreen
+              src="https://experience.arcgis.com/experience/78a8e9b9b9a94fc290d9ebcd13876fc0/"
+          ></iframe>
+        </div>
         <div class="map" id="container"></div>
       </div>
     </div>
@@ -50,6 +68,7 @@ export default {
       rightLng,
       leftLat,
       leftLng,
+      showMap:ref(false),
     }
   },
   mounted() {
@@ -99,6 +118,9 @@ export default {
       deep: true})
   },
   methods: {
+    replaceMap() {
+      this.showMap = !this.showMap
+    },
     initMap() {
       let hook = this
       AMapLoader.load({
@@ -115,8 +137,8 @@ export default {
         hook.map = new AMap.Map("container", { //设置地图容器id
         //这里的参数有许多可根据需要添加  点击下面《map地图参数》跳转
         viewMode: "2D", //是否为3D地图模式
-            zoom: 18, //初始化地图级别
-            center: [120.755482,30.745296], //初始化地图中心点位置
+            zoom: 17, //初始化地图级别
+            center: [120.709047,30.764802], //初始化地图中心点位置
             animateEnable: false,
         })
         hook.map.on('moveend', hook.onMove);

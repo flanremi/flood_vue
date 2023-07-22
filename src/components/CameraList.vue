@@ -51,7 +51,7 @@ export default {
       for (let i = 0; i < newArray.length; i++) {
         hook.tableData.push(reactive({
           code: newArray[i].code,
-          alert_lvl: newArray[i].alertLevel,
+          alert_lvl: newArray[i].alertLevel > 1?"有涝情":"无涝情",
           address: newArray[i].address
         }))
       }
