@@ -29,7 +29,6 @@
 <script>
 import {inject, ref,watch} from "vue";
 import flvjs from 'flv.js';
-
 export default {
   name: "StreamScreen",
   props:{

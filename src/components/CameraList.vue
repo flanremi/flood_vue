@@ -32,6 +32,7 @@ export default {
     listData:ref(),
     map:null
   },
+  emits: ['rowClick'], // 定义子组件可以触发的事件
   setup(){
     let tableData = ref([])
     let pos = ref(0)
@@ -62,12 +63,14 @@ export default {
   methods: {
     rowClick(row){
       // 点击表格的回调，row为表格中填充的数据
-      let hook = this
-      this.listData.forEach(function(element) {
-        if(element.code == row.code){
-          hook.camera_list_click_code = row.code
-        }
-      })
+      let hook = this;
+      // this.listData.forEach(function(element) {
+      //   if(element.code == row.code){
+      //     hook.camera_list_click_code = row.code;
+      //   }
+      // })
+      console.log(row.code)
+      hook.$emit("rowClick", row.code);
     }
   }
 }

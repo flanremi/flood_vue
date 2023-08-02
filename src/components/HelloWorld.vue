@@ -106,7 +106,7 @@ export default {
       }).then(function (response) {
         // 注意内部类内使用this指代的是回调对象，而不是vue对象
         hook.listData.length = 0
-        console.log(response)
+        // console.log(response)
         response.data.data.forEach(function(element) {
           hook.listData.push(element)
         });

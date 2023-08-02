@@ -9,29 +9,11 @@
             <div class="map_title">秀洲区易涝点监测地图</div>
           </div>
         </div>
-        <el-switch
-            v-model="showMap"
-            class="ml-2"
-            inline-prompt
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #77aebb; float: right; margin-right: 10px; padding-left: 5px; padding-right: 5px"
-            active-text=" 三维地图 "
-            inactive-text=" 二维地图 "
-        />
-<!--        <button @click="replaceMap">点击替换地图</button>-->
-        <div v-if="showMap" class="map">
-          <iframe
-              width="100%"
-              height="100%"
-
-              allowfullscreen
-              src="https://experience.arcgis.com/experience/78a8e9b9b9a94fc290d9ebcd13876fc0/"
-          ></iframe>
-        </div>
         <div class="map" id="container"></div>
       </div>
     </div>
 
-    <CameraList :listData="listData" :map="map"/>
+    <CameraList :listData="listData" :map="map" @rowClick="rowClick($event)"/>
   </div>
 </template>
 
@@ -68,7 +50,6 @@ export default {
       rightLng,
       leftLat,
       leftLng,
-      showMap:ref(false),
     }
   },
   mounted() {
@@ -95,32 +76,50 @@ export default {
         // 创建一个 Marker 实例：
         let item = newArray[i]
 
-        const marker = new hook.AMap.Marker({
-          position: new hook.AMap.LngLat(item.lng, item.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
-          title : item.code + "_" + item.address,
-        });
+        let marker
+        //根据风险等级调整图标颜色
+        if(item.alertLevel == 5){
+          marker = new hook.AMap.Marker({
+            position: new hook.AMap.LngLat(item.lng, item.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+            title : item.code + "_" + item.address,
+            icon: new hook.AMap.Icon({
+              image: "https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png",
+            }),
+          });
+        }
+        else {
+          marker = new hook.AMap.Marker({
+            position: new hook.AMap.LngLat(item.lng, item.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+            title : item.code + "_" + item.address,
+          });
+        }
          // 声明点击事件的回调函数
         marker.on('click', hook.onClick);
         hook.map.add(marker);
         hook.markers.push(marker)
+
+        /*
         hook.heaters.push({
           "lng": item.lng,
           "lat": item.lat,
           "count": item.alertLevel
         })
       }
+      */
+
+
+      /*
       hook.heatmap.setDataSet({
         data: hook.heaters,
         max: 7
       });
 
+       */
+
     }, {
       deep: true})
   },
   methods: {
-    replaceMap() {
-      this.showMap = !this.showMap
-    },
     initMap() {
       let hook = this
       AMapLoader.load({
@@ -137,11 +136,12 @@ export default {
         hook.map = new AMap.Map("container", { //设置地图容器id
         //这里的参数有许多可根据需要添加  点击下面《map地图参数》跳转
         viewMode: "2D", //是否为3D地图模式
-            zoom: 17, //初始化地图级别
-            center: [120.709047,30.764802], //初始化地图中心点位置
+            zoom: 18, //初始化地图级别
+            center: [120.691131,30.765771], //初始化地图中心点位置
             animateEnable: false,
         })
         hook.map.on('moveend', hook.onMove);
+        /*
         hook.map.plugin(["AMap.HeatMap"], function () {
           //初始化heatmap对象 注意this的指代变化
           hook.heatmap = new AMap.HeatMap(hook.map, {
@@ -150,6 +150,9 @@ export default {
 
           });
         });
+
+         */
+
       }).catch(e => {
         console.log(e);
       })
@@ -181,9 +184,10 @@ export default {
       this.camera_list_click_code = code
     },
 
+    rowClick(code) {
+      this.camera_list_click_code = code
+    },
     onMove(){//地图移动事件
-
-
       //避免多次唤醒
       if(Math.abs(this.map.getBounds().northEast.lat - this.rightLat) > 0.0010 ||
           Math.abs(this.map.getBounds().northEast.lng - this.rightLng) > 0.0008){
