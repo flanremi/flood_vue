@@ -55,15 +55,115 @@ export default {
   mounted() {
     this.initMap()
     let hook = this
+    var oldTextList = []
 
     watch(() => {return this.camera_list_click_code;}, function (newCode){
-      hook.listData.forEach(function(element) {
-        if(element.code == newCode){
-          console.log(element)
-          hook.map.setCenter([element.lng, element.lat])
+          let firstCamera = -1
+          let find = false
+          console.log("----------------触发点击事件----------------")
+          hook.listData.forEach(function(element) {
+            if(!find){
+              firstCamera++;
+            }
+            if(element.code == newCode){
+
+              console.log("firstCamera" + firstCamera)
+              find = true
+              console.log(element)
+              hook.map.setCenter([element.lng, element.lat])
+            }
+          })
+          //清除旧标记，初始时无旧标记不需要清除
+          if(oldTextList.length != 0){
+            for (let i = 0; i < 5; i++) {
+              oldTextList[i].setText(" ")
+              oldTextList[i].setMap(hook.map)
+            }
+          }
+          //设置文本为空
+          for (let i = 0; i < 5; i++) {
+            let item = hook.listData[(firstCamera + i) % hook.listData.length];
+
+            let text = new hook.AMap.Text({
+              text: " ",
+              anchor:'top-left', // 设置文本标记锚点
+              draggable:true,
+              cursor:'pointer',
+              angle:0,
+              clickable: true,
+              style:{
+                'padding': '.5rem',
+                'margin-bottom': '2.5rem',
+                'border-radius': '.25rem',
+                'background-color': 'transparent',
+                //'background-color': 'white',
+                'width': '1.5rem',
+                'border-width': 0,
+                'box-shadow': '0 2px 6px 0 rgba(114, 124, 245, 0)',
+                'text-align': 'center',
+                'font-size': '16px',
+                'color': 'blue'
+              },
+              title:item.code + "_" + item.address,
+              position: [item.lng,item.lat]
+            });
+            //text.setText(i+1)
+            // console.log("text")
+            // console.log(text)
+            oldTextList.splice(i,1,text)
+            // console.log("oldTextList")
+            // console.log(oldTextList)
+            text.on('click', hook.onClick);
+            console.log("text")
+            console.log(text)
+            text.setMap(hook.map)
+
+          }
+          //给标记加标号
+          for (let j = 0; j < 5; j++) {
+
+            let text = oldTextList[j]
+            // console.log("oldTextList")
+            // console.log(text)
+            text.setText(j+1)
+            text.setMap(hook.map)
+            // let item = hook.listData[(firstCamera + j) % hook.listData.length];
+            //
+            // let text = new hook.AMap.Text({
+            //   text: j+1,
+            //   anchor:'top-left', // 设置文本标记锚点
+            //   draggable:true,
+            //   cursor:'pointer',
+            //   angle:0,
+            //   style:{
+            //     'padding': '.5rem',
+            //     'margin-bottom': '2.5rem',
+            //     'border-radius': '.25rem',
+            //     'background-color': 'transparent',
+            //     //'background-color': 'white',
+            //     'width': '1.5rem',
+            //     'border-width': 0,
+            //     'box-shadow': '0 2px 6px 0 rgba(114, 124, 245, 0)',
+            //     'text-align': 'center',
+            //     'font-size': '16px',
+            //     'color': 'blue'
+            //   },
+            //   position: [item.lng,item.lat]
+            // });
+            // oldTextList.add(text)
+            // //text.setText(j+1);
+            // //hook.AMap.Text.setOffset(0,-1);
+            // text.setMap(hook.map)
+
+
+
+
+          }
+
         }
-      })
-    })
+
+
+    )
     watch(() => { return this.listData; }, function (newArray) {
       // 数组发生变化时触发这个回调
       hook.heaters.length = 0
@@ -79,6 +179,7 @@ export default {
         let marker
         //根据风险等级调整图标颜色
         if(item.alertLevel == 5){
+
           marker = new hook.AMap.Marker({
             position: new hook.AMap.LngLat(item.lng, item.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
             title : item.code + "_" + item.address,
@@ -91,12 +192,17 @@ export default {
           marker = new hook.AMap.Marker({
             position: new hook.AMap.LngLat(item.lng, item.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
             title : item.code + "_" + item.address,
+            icon: new hook.AMap.Icon({
+              image: "https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
+            }),
           });
         }
-         // 声明点击事件的回调函数
+        console.log("marker")
+        console.log(marker)
+        // 声明点击事件的回调函数
         marker.on('click', hook.onClick);
         hook.map.add(marker);
-        hook.markers.push(marker)
+        //hook.markers.push(marker)
 
         /*
         hook.heaters.push({
@@ -108,13 +214,13 @@ export default {
       */
 
 
-      /*
-      hook.heatmap.setDataSet({
-        data: hook.heaters,
-        max: 7
-      });
+        /*
+        hook.heatmap.setDataSet({
+          data: hook.heaters,
+          max: 7
+        });
 
-       */
+         */
       }
     }, {
       deep: true})
@@ -134,11 +240,11 @@ export default {
       }).then((AMap) => {
         hook.AMap = AMap
         hook.map = new AMap.Map("container", { //设置地图容器id
-        //这里的参数有许多可根据需要添加  点击下面《map地图参数》跳转
-        viewMode: "2D", //是否为3D地图模式
-            zoom: 18, //初始化地图级别
-            center: [120.691131,30.765771], //初始化地图中心点位置
-            animateEnable: false,
+          //这里的参数有许多可根据需要添加  点击下面《map地图参数》跳转
+          viewMode: "2D", //是否为3D地图模式
+          zoom: 18, //初始化地图级别
+          center: [120.691131,30.765771], //初始化地图中心点位置
+          animateEnable: false,
         })
         hook.map.on('moveend', hook.onMove);
         /*
@@ -158,28 +264,29 @@ export default {
       })
     },
 
-      // this.global.axios.post('/get_hot_circle').then(function (response) {
-      //   // 注意内部类内使用this指代的是回调对象，而不是vue对象
-      //   let circles = response.data.data
-      //
-      //   hook.heaters.length = 0
-      //   circles.forEach(function(element) {
-      //     hook.heaters.push({
-      //       "lat": element.lat,
-      //       "lng": element.lng,
-      //       "count": element.alertLevel
-      //     })
-      //   });
-      //   hook.heatmap.setDataSet({
-      //     data: hook.heaters,
-      //     max: 5
-      //   });
-      // })
-      // .catch(function (error) {
-      //   console.log(error);
-      // });
+    // this.global.axios.post('/get_hot_circle').then(function (response) {
+    //   // 注意内部类内使用this指代的是回调对象，而不是vue对象
+    //   let circles = response.data.data
+    //
+    //   hook.heaters.length = 0
+    //   circles.forEach(function(element) {
+    //     hook.heaters.push({
+    //       "lat": element.lat,
+    //       "lng": element.lng,
+    //       "count": element.alertLevel
+    //     })
+    //   });
+    //   hook.heatmap.setDataSet({
+    //     data: hook.heaters,
+    //     max: 5
+    //   });
+    // })
+    // .catch(function (error) {
+    //   console.log(error);
+    // });
     // marker点击回调函数
     onClick(e){
+
       let code = e.target.getTitle().split("_")[0]
       this.camera_list_click_code = code
     },
